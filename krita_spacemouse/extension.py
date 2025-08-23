@@ -1,6 +1,7 @@
 # extension.py - Ultra-minimal SpaceMouse extension
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QDockWidget
+from PyQt5 import QtCore
 from krita import Extension, Krita, DockWidgetFactory, DockWidgetFactoryBase
 from .spnav import libspnav
 from .docker import SpacenavDocker
@@ -13,16 +14,26 @@ class SpacenavControlExtension(Extension):
         self.timer.timeout.connect(self.timer_event_handler)
         self.docker = None
 
-    def setup(self):        
+    def setup(self):
+        # Set extension class variable so docker can find it
+        SpacenavDocker._extension_instance = self
+        
+        # Create and register factory
         Krita.instance().addDockWidgetFactory(
             DockWidgetFactory("spacenavDocker", DockWidgetFactoryBase.DockRight, SpacenavDocker)
         )
 
     def createActions(self, window):
-        from PyQt5.QtWidgets import QDockWidget
-        self.docker = window.findChild(QDockWidget, "spacenavDocker")
-        if self.docker:
-            self.docker.set_extension(self)
+        # Docker will already have extension reference, just find it
+        def delayed_docker_search():
+            dockers = Krita.instance().dockers()
+            for docker in dockers:
+                if docker.objectName() == "spacenavDocker":
+                    self.docker = docker
+                    QtCore.qDebug("SpaceMouse docker successfully found and linked")
+                    break
+        
+        QTimer.singleShot(100, delayed_docker_search)
 
     def timer_event_handler(self):
         poll_spacenav(self)
@@ -34,9 +45,9 @@ class SpacenavControlExtension(Extension):
             if result == -1:
                 QMessageBox.warning(None, "SpaceMouse Error", f"No SpaceMouse device found at device #{device_num}.")
                 return
-            
+
             self.timer.start(self.docker.advanced_tab.get_poll_rate())
-    
+
     def disconnect(self):
         if self.timer.isActive():
             self.timer.stop()

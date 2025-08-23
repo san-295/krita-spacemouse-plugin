@@ -1,6 +1,7 @@
 # tabs/advanced_tab.py - Minimal version
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSlider, QPushButton, QSpinBox
 from PyQt5.QtCore import Qt
+from PyQt5 import QtCore
 
 class AdvancedTab(QWidget):
     def __init__(self, parent):
@@ -33,6 +34,7 @@ class AdvancedTab(QWidget):
         self.poll_rate_slider.setMinimum(5)    # 5ms = 200Hz
         self.poll_rate_slider.setMaximum(50)   # 50ms = 20Hz
         self.poll_rate_slider.setValue(10)     # 10ms = 100Hz default
+        self.poll_rate_slider.valueChanged.connect(self.update_poll_rate)
         self.poll_rate_label = QLabel(f"Poll Rate: {self.poll_rate_slider.value()}ms")
         self.layout.addWidget(self.poll_rate_label)
         self.layout.addWidget(self.poll_rate_slider)
@@ -41,8 +43,8 @@ class AdvancedTab(QWidget):
         self.device_number_spinbox = QSpinBox()
         self.device_number_spinbox.setMinimum(0)
         self.device_number_spinbox.setMaximum(9)  # Support up to 10 devices (0-9)
-        self.device_number_spinbox.setValue(0)    # Default to first device
-        self.device_number_label = QLabel(f"Device Number: {self.device_number_spinbox.value()}")
+        self.device_number_spinbox.setValue(3)    # Default to device 3
+        self.device_number_label = QLabel(f"Device Number")
         self.layout.addWidget(self.device_number_label)
         self.layout.addWidget(self.device_number_spinbox)
 
@@ -65,6 +67,9 @@ class AdvancedTab(QWidget):
 
     def update_dead_zone(self, value):
         self.dead_zone_label.setText(f"Dead Zone: {value}")
+
+    def update_poll_rate(self, value):
+        self.poll_rate_label.setText(f"Poll Rate: {value}ms")
 
     def connect_spacemouse(self):
         """Connect to SpaceMouse device"""
@@ -91,11 +96,11 @@ class AdvancedTab(QWidget):
                 self.disconnect_button.setEnabled(False)  # Keep disconnect disabled
                 if hasattr(self.parent, 'status_label'):
                     self.parent.status_label.setText(f"Error: {e}")
-                print(f"Connection error: {e}")
+                QtCore.qWarning(f"Connection error: {e}")
             finally:
                 self.connect_button.setEnabled(True)
         else:
-            print("Extension not available")
+            QtCore.qCritical("Extension not available")
 
     def disconnect_spacemouse(self):
         """Disconnect from SpaceMouse device"""
@@ -121,9 +126,9 @@ class AdvancedTab(QWidget):
                 self.disconnect_button.setEnabled(True)
                 if hasattr(self.parent, 'status_label'):
                     self.parent.status_label.setText(f"Disconnect Error: {e}")
-                print(f"Disconnection error: {e}")
+                QtCore.qWarning(f"Disconnection error: {e}")
         else:
-            print("Extension not available")
+            QtCore.qCritical("Extension not available")
 
     def get_sensitivity(self):
         """Get sensitivity as decimal (0.1 to 2.0)"""

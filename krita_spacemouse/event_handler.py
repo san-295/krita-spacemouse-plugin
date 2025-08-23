@@ -1,6 +1,7 @@
 # event_handler.py - Ultra-minimal
 from krita import Krita
-from krita_spacemouse.spnav import libspnav, SPNAV_EVENT_MOTION, SPNAV_EVENT_BUTTON
+from PyQt5 import QtCore
+import spacenavigator
 
 def poll_spacenav(self):
     try:
@@ -14,20 +15,21 @@ def poll_spacenav(self):
                 if d.objectName() == "spacenavDocker":
                     self.docker = d
                     self.docker.set_extension(self)
+                    QtCore.qDebug("Docker found and linked in event_handler")
                     break
             else:
                 return
 
-        # Simple event polling - but do nothing with events for minimal functionality
-        result = libspnav.spnav_poll_event(self.event)
-        if result == 0:
-            return
-            
-        # Events are polled but ignored for minimal wireless setup
-        if self.event.type == SPNAV_EVENT_BUTTON:
-            pass  # Button events ignored
-        elif self.event.type == SPNAV_EVENT_MOTION:
-            pass  # Motion events ignored
+        # Read SpaceNavigator data and print results
+        try:
+            state = spacenavigator.read()
+            if state:
+                QtCore.qDebug(f"SpaceNavigator data: x={state.x:.3f}, y={state.y:.3f}, z={state.z:.3f}")
+                QtCore.qDebug(f"                    roll={state.roll:.3f}, pitch={state.pitch:.3f}, yaw={state.yaw:.3f}")
+                QtCore.qDebug(f"                    buttons={state.buttons}")
+        except Exception as read_error:
+            QtCore.qWarning(f"Error reading SpaceNavigator: {read_error}")
 
-    except Exception:
+    except Exception as e:
+        QtCore.qCritical(f"Error in poll_spacenav: {e}")
         self.timer.stop()  # Stop on any error

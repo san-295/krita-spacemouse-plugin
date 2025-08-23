@@ -1,16 +1,8 @@
 # spnav.py - SpaceNavigator interface using spacenavigator.py library
 import sys
 import os
-
-# Add the parent directory to the path to import spacenavigator
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-try:
-    import spacenavigator
-    print("spacenavigator library loaded successfully")
-except ImportError as e:
-    print(f"Error: Could not load spacenavigator library - {e}")
-    raise
+from PyQt5 import QtCore
+import spacenavigator
 
 # Event type constants (for compatibility with existing code)
 SPNAV_EVENT_MOTION = 1
@@ -57,13 +49,13 @@ def spnav_open(device_number):
     try:
         _spacenav_device = spacenavigator.open(DeviceNumber=device_number)
         if _spacenav_device:
-            print("Connected to SpaceNavigator device")
+            QtCore.qDebug("Connected to SpaceNavigator device")
             return 0  # Success
         else:
-            print("No SpaceNavigator device found")
+            QtCore.qWarning("No SpaceNavigator device found")
             return -1  # Failure
     except Exception as e:
-        print(f"Error opening SpaceNavigator: {e}")
+        QtCore.qCritical(f"Error opening SpaceNavigator: {e}")
         return -1
 
 def spnav_close():
@@ -73,10 +65,10 @@ def spnav_close():
         if _spacenav_device:
             spacenavigator.close()
             _spacenav_device = None
-            print("SpaceNavigator connection closed")
+            QtCore.qDebug("SpaceNavigator connection closed")
         return 0
     except Exception as e:
-        print(f"Error closing SpaceNavigator: {e}")
+        QtCore.qCritical(f"Error closing SpaceNavigator: {e}")
         return -1
 
 def spnav_poll_event(event_wrapper):
@@ -101,7 +93,7 @@ def spnav_poll_event(event_wrapper):
             current_state.pitch != _last_state.pitch or 
             current_state.yaw != _last_state.yaw
         ):
-            # Scale from [-1, 1] range to integer randebug_print ge similar to libspnav
+            # Scale from [-1, 1] range to integer range similar to libspnav
             scale_factor = 350
             event_wrapper.type = SPNAV_EVENT_MOTION
             event_wrapper.event.motion.x = int(current_state.x * scale_factor)
@@ -129,7 +121,7 @@ def spnav_poll_event(event_wrapper):
         return 0  # No events
         
     except Exception as e:
-        print(f"Error polling SpaceNavigator: {e}")
+        QtCore.qCritical(f"Error polling SpaceNavigator: {e}")
         return 0
 
 def spnav_remove_events(event_type):
