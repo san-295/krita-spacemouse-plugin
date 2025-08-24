@@ -2,8 +2,8 @@
 from PyQt5.QtWidgets import QDockWidget, QWidget, QVBoxLayout, QLabel, QTabWidget
 from PyQt5.QtCore import Qt
 from krita import DockWidget
-from .views.connection_tab import ConnectionTab
-from .views.configuration_tab import ConfigurationTab
+from .connection_tab import ConnectionTab
+from .configuration_tab import ConfigurationTab
 
 class SpacenavDocker(DockWidget):
     def __init__(self, extension=None):

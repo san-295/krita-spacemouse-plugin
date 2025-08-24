@@ -1,51 +1,53 @@
-# spnav.py - SpaceNavigator interface using spacenavigator.py library
-import sys
-import os
-from PyQt5 import QtCore
+"""
+SpaceNavigator device interface for Krita SpaceMouse plugin.
+Provides compatibility layer between spacenavigator library and libspnav-like interface.
+"""
+
 import spacenavigator
+from PyQt5 import QtCore
 
-# Event type constants (for compatibility with existing code)
-SPNAV_EVENT_MOTION = 1
-SPNAV_EVENT_BUTTON = 2
-
-# Global device reference
+# Global variables for device state
 _spacenav_device = None
 _last_state = None
 _button_states = {}
 
+# Constants for event types (libspnav compatibility)
+SPNAV_EVENT_MOTION = 1
+SPNAV_EVENT_BUTTON = 2
+
 class SpnavMotionEvent:
-    """Motion event compatibility class"""
-    def __init__(self, x=0, y=0, z=0, rx=0, ry=0, rz=0, period=0):
-        self.x = x
-        self.y = y  
-        self.z = z
-        self.rx = rx
-        self.ry = ry
-        self.rz = rz
-        self.period = period
+    """Motion event data structure"""
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+        self.z = 0
+        self.rx = 0
+        self.ry = 0
+        self.rz = 0
+        self.period = 0
 
 class SpnavButtonEvent:
-    """Button event compatibility class"""
-    def __init__(self, press=0, bnum=0):
-        self.press = press
-        self.bnum = bnum
+    """Button event data structure"""
+    def __init__(self):
+        self.bnum = 0
+        self.press = 0
 
-class SpnavEvent:
-    """Event union compatibility class"""
+class SpnavEventUnion:
+    """Union for different event types"""
     def __init__(self):
         self.motion = SpnavMotionEvent()
         self.button = SpnavButtonEvent()
 
-class SpnavEventWrapper:
-    """Event wrapper compatibility class"""
+class SpnavEvent:
+    """SpaceNavigator event wrapper"""
     def __init__(self):
         self.type = 0
-        self.event = SpnavEvent()
+        self.event = SpnavEventUnion()
 
-# Compatibility functions that mimic libspnav interface
-def spnav_open(device_number):
+def spnav_open(device_number=0):
     """Open connection to SpaceNavigator device"""
-    global _spacenav_device
+    global _spacenav_device, _last_state, _button_states
+    
     try:
         _spacenav_device = spacenavigator.open(DeviceNumber=device_number)
         if _spacenav_device:
