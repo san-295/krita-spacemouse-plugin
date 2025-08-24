@@ -130,8 +130,56 @@ class SpaceMouseAdapter:
         return 0
 
     def list_devices(self):
-        """List all available SpaceMouse devices"""
-        return spacenavigator.list_devices()
+        """List all available SpaceMouse devices with device numbers"""
+        try:
+            devices = spacenavigator.list_devices()
+            if not devices:
+                return []
+            
+            # Count occurrences of each device name
+            device_counts = {}
+            for device in devices:
+                device_counts[device] = device_counts.get(device, 0) + 1
+            
+            # Create combined device list with device numbers
+            combined_devices = []
+            device_indices = {}
+            
+            for device in devices:
+                # Track current index for this device type
+                current_index = device_indices.get(device, 0)
+                device_indices[device] = current_index + 1
+                
+                # If there's only one of this device type, don't show index
+                if device_counts[device] == 1:
+                    combined_devices.append(device)
+                else:
+                    combined_devices.append(f"{device} - {current_index}")
+            
+            return combined_devices
+            
+        except Exception as e:
+            QtCore.qWarning(f"Error listing devices: {e}")
+            return []
+
+    def parse_device_selection(self, device_selection):
+        """Parse device selection string into device name and number"""
+        if not device_selection:
+            return None, 0
+            
+        # Check if device selection contains " - " indicating device number
+        if " - " in device_selection:
+            parts = device_selection.rsplit(" - ", 1)  # Split from right, only once
+            try:
+                device_name = parts[0]
+                device_number = int(parts[1])
+                return device_name, device_number
+            except (ValueError, IndexError):
+                # If parsing fails, treat as device name only
+                return device_selection, 0
+        else:
+            # No device number, use 0 as default
+            return device_selection, 0
 
     def read_device_state(self):
         """Read current state from connected SpaceMouse device"""

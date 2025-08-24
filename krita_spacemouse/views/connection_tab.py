@@ -22,15 +22,6 @@ class ConnectionTab(QWidget):
         device_layout.addWidget(self.refresh_button)
         self.layout.addLayout(device_layout)
 
-        # Device number control (for multiple devices of same type)
-        self.device_number_spinbox = QSpinBox()
-        self.device_number_spinbox.setMinimum(0)
-        self.device_number_spinbox.setMaximum(9)  # Support up to 10 devices (0-9)
-        self.device_number_spinbox.setValue(0)    # Default to device 0
-        self.device_number_label = QLabel("Device Number (if multiple of same type)")
-        self.layout.addWidget(self.device_number_label)
-        self.layout.addWidget(self.device_number_spinbox)
-
         # Connect button
         self.connect_button = QPushButton("Connect SpaceMouse")
         self.connect_button.clicked.connect(self.connect_spacemouse)
@@ -85,19 +76,18 @@ class ConnectionTab(QWidget):
             self.connect_button.setEnabled(False)
             
             try:
-                device_num = self.device_number_spinbox.value()
-                device_name = self.device_combo.currentText()
+                device_selection = self.device_combo.currentText()
                 
                 # Don't try to connect if no valid device selected
-                if device_name == "No devices found" or device_name == "Error detecting devices":
+                if device_selection == "No devices found" or device_selection == "Error detecting devices":
                     raise Exception("No valid device selected")
                 
-                self.parent.extension.connect(device_num, device_name)
+                self.parent.extension.connect(device_selection)
                 
                 self.connect_button.setText("Reconnect SpaceMouse")
                 self.disconnect_button.setEnabled(True)
                 if hasattr(self.parent, 'status_label'):
-                    self.parent.status_label.setText(f"Connected to {device_name} (#{device_num})")
+                    self.parent.status_label.setText(f"Connected to {device_selection}")
                     
             except Exception as e:
                 self.connect_button.setText("Connect SpaceMouse")

@@ -39,12 +39,14 @@ class SpacenavControlExtension(Extension):
             QtCore.qWarning(f"Error getting available devices: {e}")
             return []
 
-    def connect(self, device_num, device_name=None):
-        # Connect to SpaceNavigator device directly
-        result = adapter.open_device(device_num, device_name)  # Use specified device number and name
+    def connect(self, device_selection):
+        # Parse device selection into name and number
+        device_name, device_number = adapter.parse_device_selection(device_selection)
+        
+        # Connect to SpaceMouse device directly
+        result = adapter.open_device(device_number, device_name)
         if result == -1:
-            device_info = f"{device_name} #{device_num}" if device_name else f"device #{device_num}"
-            QMessageBox.warning(None, "SpaceMouse Error", f"No SpaceMouse device found: {device_info}.")
+            QMessageBox.warning(None, "SpaceMouse Error", f"No SpaceMouse device found: {device_selection}.")
             return
 
         # Get poll rate from docker if available, otherwise use default
