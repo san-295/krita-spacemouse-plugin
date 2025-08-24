@@ -26,11 +26,16 @@ def poll_spacenav(extension):
         try:
             state = spacenavigator.read()
             if state:
-                # Get settings from UI - direct scaling values
-                pan_scale = docker.advanced_tab.get_pan_scale() if hasattr(docker, 'advanced_tab') else 120
-                zoom_scale = docker.advanced_tab.get_zoom_scale() if hasattr(docker, 'advanced_tab') else 0.032
-                rotation_speed = docker.advanced_tab.get_rotation_speed() if hasattr(docker, 'advanced_tab') else 2.0
-                dead_zone = docker.advanced_tab.get_dead_zone() if hasattr(docker, 'advanced_tab') else 0.13
+                # Get settings from UI - configuration tab
+                pan_scale = docker.configuration_tab.get_pan_scale() if hasattr(docker, 'configuration_tab') else None
+                zoom_scale = docker.configuration_tab.get_zoom_scale() if hasattr(docker, 'configuration_tab') else None
+                rotation_speed = docker.configuration_tab.get_rotation_speed() if hasattr(docker, 'configuration_tab') else None
+                dead_zone = docker.configuration_tab.get_dead_zone() if hasattr(docker, 'configuration_tab') else None
+                
+                # Skip processing if we can't get configuration values
+                if pan_scale is None or zoom_scale is None or rotation_speed is None or dead_zone is None:
+                    QtCore.qWarning("Configuration tab not available, skipping SpaceMouse processing")
+                    return
                 
                 # Apply dead zone and get processed values - let UI sensitivities handle all scaling
                 x_pan_raw = apply_deadzone(state.x, dead_zone)
