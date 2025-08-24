@@ -23,12 +23,12 @@ class ConnectionTab(QWidget):
         self.layout.addLayout(device_layout)
 
         # Connect button
-        self.connect_button = QPushButton("Connect SpaceMouse")
+        self.connect_button = QPushButton("Connect")
         self.connect_button.clicked.connect(self.connect_spacemouse)
         self.layout.addWidget(self.connect_button)
 
         # Disconnect button
-        self.disconnect_button = QPushButton("Disconnect SpaceMouse")
+        self.disconnect_button = QPushButton("Disconnect")
         self.disconnect_button.clicked.connect(self.disconnect_spacemouse)
         self.disconnect_button.setEnabled(False)  # Initially disabled
         self.layout.addWidget(self.disconnect_button)
@@ -47,10 +47,12 @@ class ConnectionTab(QWidget):
             
             # Get available devices through the controller
             if hasattr(self.parent, 'extension') and self.parent.extension:
-                devices = self.parent.extension.get_available_devices()
+                raw_devices = self.parent.extension.get_available_devices()
                 
-                if devices:
-                    self.device_combo.addItems(devices)
+                if raw_devices:
+                    # Format devices for display (UI concern)
+                    formatted_devices = self.format_devices_for_display(raw_devices)
+                    self.device_combo.addItems(formatted_devices)
                     self.device_combo.setEnabled(True)
                     self.connect_button.setEnabled(True)
                 else:
@@ -68,6 +70,33 @@ class ConnectionTab(QWidget):
             self.device_combo.addItem("Error detecting devices")
             self.device_combo.setEnabled(False)
             self.connect_button.setEnabled(False)
+
+    def format_devices_for_display(self, raw_devices):
+        """Format raw device list for UI display with device numbers when needed"""
+        if not raw_devices:
+            return []
+        
+        # Count occurrences of each device name
+        device_counts = {}
+        for device in raw_devices:
+            device_counts[device] = device_counts.get(device, 0) + 1
+        
+        # Create combined device list with device numbers
+        formatted_devices = []
+        device_indices = {}
+        
+        for device in raw_devices:
+            # Track current index for this device type
+            current_index = device_indices.get(device, 0)
+            device_indices[device] = current_index + 1
+            
+            # If there's only one of this device type, don't show index
+            if device_counts[device] == 1:
+                formatted_devices.append(device)
+            else:
+                formatted_devices.append(f"{device} - {current_index}")
+        
+        return formatted_devices
 
     def connect_spacemouse(self):
         """Connect to SpaceMouse device"""
@@ -88,14 +117,14 @@ class ConnectionTab(QWidget):
                 # Pass parsed device name and number to controller
                 self.parent.extension.connect(device_name, device_number)
                 
-                self.connect_button.setText("Reconnect SpaceMouse")
+                self.connect_button.setText("Reconnect")
                 self.disconnect_button.setEnabled(True)
                 self.update_disconnect_button_text(device_selection)
                 if hasattr(self.parent, 'status_label'):
                     self.parent.status_label.setText(f"Connected to {device_selection}")
                     
             except Exception as e:
-                self.connect_button.setText("Connect SpaceMouse")
+                self.connect_button.setText("Connect")
                 self.disconnect_button.setEnabled(False)
                 if hasattr(self.parent, 'status_label'):
                     self.parent.status_label.setText(f"Error: {e}")
@@ -129,7 +158,7 @@ class ConnectionTab(QWidget):
         if device_selection and device_selection not in ["No devices found", "Error detecting devices"]:
             self.disconnect_button.setText(f"Disconnect {device_selection}")
         else:
-            self.disconnect_button.setText("Disconnect SpaceMouse")
+            self.disconnect_button.setText("Disconnect")
 
     def disconnect_spacemouse(self):
         """Disconnect from SpaceMouse device"""
@@ -140,14 +169,14 @@ class ConnectionTab(QWidget):
             try:
                 self.parent.extension.disconnect()
                 
-                self.connect_button.setText("Connect SpaceMouse")
-                self.disconnect_button.setText("Disconnect SpaceMouse")
+                self.connect_button.setText("Connect")
+                self.disconnect_button.setText("Disconnect")
                 self.disconnect_button.setEnabled(False)
                 if hasattr(self.parent, 'status_label'):
                     self.parent.status_label.setText("Disconnected")
                     
             except Exception as e:
-                self.disconnect_button.setText("Disconnect SpaceMouse")
+                self.disconnect_button.setText("Disconnect")
                 self.disconnect_button.setEnabled(True)
                 if hasattr(self.parent, 'status_label'):
                     self.parent.status_label.setText(f"Disconnect Error: {e}")

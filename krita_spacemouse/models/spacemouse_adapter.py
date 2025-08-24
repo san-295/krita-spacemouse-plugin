@@ -130,34 +130,10 @@ class SpaceMouseAdapter:
         return 0
 
     def list_devices(self):
-        """List all available SpaceMouse devices with device numbers"""
+        """List all available SpaceMouse devices"""
         try:
             devices = spacenavigator.list_devices()
-            if not devices:
-                return []
-            
-            # Count occurrences of each device name
-            device_counts = {}
-            for device in devices:
-                device_counts[device] = device_counts.get(device, 0) + 1
-            
-            # Create combined device list with device numbers
-            combined_devices = []
-            device_indices = {}
-            
-            for device in devices:
-                # Track current index for this device type
-                current_index = device_indices.get(device, 0)
-                device_indices[device] = current_index + 1
-                
-                # If there's only one of this device type, don't show index
-                if device_counts[device] == 1:
-                    combined_devices.append(device)
-                else:
-                    combined_devices.append(f"{device} - {current_index}")
-            
-            return combined_devices
-            
+            return devices if devices else []
         except Exception as e:
             QtCore.qWarning(f"Error listing devices: {e}")
             return []
