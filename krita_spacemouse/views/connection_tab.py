@@ -82,10 +82,15 @@ class ConnectionTab(QWidget):
                 if device_selection == "No devices found" or device_selection == "Error detecting devices":
                     raise Exception("No valid device selected")
                 
-                self.parent.extension.connect(device_selection)
+                # Parse device selection in the view (UI concern)
+                device_name, device_number = self.parse_device_selection(device_selection)
+                
+                # Pass parsed device name and number to controller
+                self.parent.extension.connect(device_name, device_number)
                 
                 self.connect_button.setText("Reconnect SpaceMouse")
                 self.disconnect_button.setEnabled(True)
+                self.update_disconnect_button_text(device_selection)
                 if hasattr(self.parent, 'status_label'):
                     self.parent.status_label.setText(f"Connected to {device_selection}")
                     
@@ -99,6 +104,32 @@ class ConnectionTab(QWidget):
                 self.connect_button.setEnabled(True)
         else:
             QtCore.qCritical("Extension not available")
+
+    def parse_device_selection(self, device_selection):
+        """Parse device selection string into device name and number"""
+        if not device_selection:
+            return None, 0
+            
+        # Check if device selection contains " - " indicating device number
+        if " - " in device_selection:
+            parts = device_selection.rsplit(" - ", 1)  # Split from right, only once
+            try:
+                device_name = parts[0]
+                device_number = int(parts[1])
+                return device_name, device_number
+            except (ValueError, IndexError):
+                # If parsing fails, treat as device name only
+                return device_selection, 0
+        else:
+            # No device number, use 0 as default
+            return device_selection, 0
+
+    def update_disconnect_button_text(self, device_selection):
+        """Update disconnect button text to show which device will be disconnected"""
+        if device_selection and device_selection not in ["No devices found", "Error detecting devices"]:
+            self.disconnect_button.setText(f"Disconnect {device_selection}")
+        else:
+            self.disconnect_button.setText("Disconnect SpaceMouse")
 
     def disconnect_spacemouse(self):
         """Disconnect from SpaceMouse device"""
@@ -123,7 +154,3 @@ class ConnectionTab(QWidget):
                 QtCore.qWarning(f"Disconnection error: {e}")
         else:
             QtCore.qCritical("Extension not available")
-
-    def get_device_number(self):
-        """Get the selected device number"""
-        return self.device_number_spinbox.value()

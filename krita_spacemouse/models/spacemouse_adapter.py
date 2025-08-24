@@ -162,25 +162,6 @@ class SpaceMouseAdapter:
             QtCore.qWarning(f"Error listing devices: {e}")
             return []
 
-    def parse_device_selection(self, device_selection):
-        """Parse device selection string into device name and number"""
-        if not device_selection:
-            return None, 0
-            
-        # Check if device selection contains " - " indicating device number
-        if " - " in device_selection:
-            parts = device_selection.rsplit(" - ", 1)  # Split from right, only once
-            try:
-                device_name = parts[0]
-                device_number = int(parts[1])
-                return device_name, device_number
-            except (ValueError, IndexError):
-                # If parsing fails, treat as device name only
-                return device_selection, 0
-        else:
-            # No device number, use 0 as default
-            return device_selection, 0
-
     def read_device_state(self):
         """Read current state from connected SpaceMouse device"""
         return spacenavigator.read()
