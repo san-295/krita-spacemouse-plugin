@@ -3,7 +3,7 @@ from krita import Krita
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMdiArea, QScrollBar
-import spacenavigator
+from .models.spacemouse_adapter import adapter
 
 def poll_spacenav(extension):
     try:
@@ -22,9 +22,9 @@ def poll_spacenav(extension):
         if not docker:
             return
 
-        # Read SpaceNavigator data and apply to canvas
+        # Read SpaceMouse data and apply to canvas
         try:
-            state = spacenavigator.read()
+            state = adapter.read_device_state()
             if state:
                 # Get settings from UI - configuration tab
                 pan_scale = docker.configuration_tab.get_pan_scale() if hasattr(docker, 'configuration_tab') else None
@@ -49,7 +49,7 @@ def poll_spacenav(extension):
                                   pan_scale, zoom_scale, rotation_speed)
                     
         except Exception as read_error:
-            QtCore.qWarning(f"Error reading SpaceNavigator: {read_error}")
+            QtCore.qWarning(f"Error reading SpaceMouse: {read_error}")
 
     except Exception as e:
         QtCore.qCritical(f"Error in poll_spacenav: {e}")
