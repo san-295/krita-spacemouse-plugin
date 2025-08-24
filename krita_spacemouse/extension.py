@@ -3,7 +3,7 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QMessageBox, QDockWidget
 from PyQt5 import QtCore
 from krita import Extension, Krita, DockWidgetFactory, DockWidgetFactoryBase
-from .models.spnav import libspnav
+from .models.spacemouse_adapter import adapter
 from .event_handler import poll_spacenav
 
 class SpacenavControlExtension(Extension):
@@ -33,7 +33,7 @@ class SpacenavControlExtension(Extension):
 
     def connect(self, device_num):
         # Connect to SpaceNavigator device directly
-        result = libspnav.spnav_open(device_num)  # Use specified device number
+        result = adapter.open_device(device_num)  # Use specified device number
         if result == -1:
             QMessageBox.warning(None, "SpaceMouse Error", f"No SpaceMouse device found at device #{device_num}.")
             return
@@ -54,7 +54,7 @@ class SpacenavControlExtension(Extension):
     def disconnect(self):
         if self.timer.isActive():
             self.timer.stop()
-        libspnav.spnav_close()
+        adapter.close_device()
 
     def stop(self):
         self.disconnect()

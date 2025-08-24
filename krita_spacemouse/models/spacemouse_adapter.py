@@ -1,21 +1,21 @@
 """
-SpaceNavigator device interface for Krita SpaceMouse plugin.
-Provides compatibility layer between spacenavigator library and libspnav-like interface.
+SpaceMouse device adapter for Krita SpaceMouse plugin.
+Provides interface between spacenavigator library and the plugin.
 """
 
 import spacenavigator
 from PyQt5 import QtCore
 
 # Global variables for device state
-_spacenav_device = None
+_spacemouse_device = None
 _last_state = None
 _button_states = {}
 
-# Constants for event types (libspnav compatibility)
-SPNAV_EVENT_MOTION = 1
-SPNAV_EVENT_BUTTON = 2
+# Constants for event types
+MOTION_EVENT = 1
+BUTTON_EVENT = 2
 
-class SpnavMotionEvent:
+class SpaceMouseMotionEvent:
     """Motion event data structure"""
     def __init__(self):
         self.x = 0
@@ -26,58 +26,58 @@ class SpnavMotionEvent:
         self.rz = 0
         self.period = 0
 
-class SpnavButtonEvent:
+class SpaceMouseButtonEvent:
     """Button event data structure"""
     def __init__(self):
         self.bnum = 0
         self.press = 0
 
-class SpnavEventUnion:
+class SpaceMouseEventUnion:
     """Union for different event types"""
     def __init__(self):
-        self.motion = SpnavMotionEvent()
-        self.button = SpnavButtonEvent()
+        self.motion = SpaceMouseMotionEvent()
+        self.button = SpaceMouseButtonEvent()
 
-class SpnavEvent:
-    """SpaceNavigator event wrapper"""
+class SpaceMouseEvent:
+    """SpaceMouse event wrapper"""
     def __init__(self):
         self.type = 0
-        self.event = SpnavEventUnion()
+        self.event = SpaceMouseEventUnion()
 
-def spnav_open(device_number=0):
-    """Open connection to SpaceNavigator device"""
-    global _spacenav_device, _last_state, _button_states
+def open_device(device_number=0):
+    """Open connection to SpaceMouse device"""
+    global _spacemouse_device, _last_state, _button_states
     
     try:
-        _spacenav_device = spacenavigator.open(DeviceNumber=device_number)
-        if _spacenav_device:
-            QtCore.qDebug("Connected to SpaceNavigator device")
+        _spacemouse_device = spacenavigator.open(DeviceNumber=device_number)
+        if _spacemouse_device:
+            QtCore.qDebug("Connected to SpaceMouse device")
             return 0  # Success
         else:
-            QtCore.qWarning("No SpaceNavigator device found")
+            QtCore.qWarning("No SpaceMouse device found")
             return -1  # Failure
     except Exception as e:
-        QtCore.qCritical(f"Error opening SpaceNavigator: {e}")
+        QtCore.qCritical(f"Error opening SpaceMouse: {e}")
         return -1
 
-def spnav_close():
-    """Close connection to SpaceNavigator device"""
-    global _spacenav_device
+def close_device():
+    """Close connection to SpaceMouse device"""
+    global _spacemouse_device
     try:
-        if _spacenav_device:
+        if _spacemouse_device:
             spacenavigator.close()
-            _spacenav_device = None
-            QtCore.qDebug("SpaceNavigator connection closed")
+            _spacemouse_device = None
+            QtCore.qDebug("SpaceMouse connection closed")
         return 0
     except Exception as e:
-        QtCore.qCritical(f"Error closing SpaceNavigator: {e}")
+        QtCore.qCritical(f"Error closing SpaceMouse: {e}")
         return -1
 
-def spnav_poll_event(event_wrapper):
-    """Poll for events from SpaceNavigator device"""
-    global _spacenav_device, _last_state, _button_states
+def poll_device_event(event_wrapper):
+    """Poll for events from SpaceMouse device"""
+    global _spacemouse_device, _last_state, _button_states
     
-    if not _spacenav_device:
+    if not _spacemouse_device:
         return 0  # No events
     
     try:
@@ -97,7 +97,7 @@ def spnav_poll_event(event_wrapper):
         ):
             # Scale from [-1, 1] range to integer range similar to libspnav
             scale_factor = 350
-            event_wrapper.type = SPNAV_EVENT_MOTION
+            event_wrapper.type = MOTION_EVENT
             event_wrapper.event.motion.x = int(current_state.x * scale_factor)
             event_wrapper.event.motion.y = int(current_state.y * scale_factor)
             event_wrapper.event.motion.z = int(current_state.z * scale_factor)
@@ -113,7 +113,7 @@ def spnav_poll_event(event_wrapper):
         for i, button_state in enumerate(current_state.buttons):
             last_button_state = _button_states.get(i, 0)
             if button_state != last_button_state:
-                event_wrapper.type = SPNAV_EVENT_BUTTON
+                event_wrapper.type = BUTTON_EVENT
                 event_wrapper.event.button.bnum = i
                 event_wrapper.event.button.press = button_state
                 _button_states[i] = button_state
@@ -123,22 +123,21 @@ def spnav_poll_event(event_wrapper):
         return 0  # No events
         
     except Exception as e:
-        QtCore.qCritical(f"Error polling SpaceNavigator: {e}")
+        QtCore.qCritical(f"Error polling SpaceMouse: {e}")
         return 0
 
-def spnav_remove_events(event_type):
+def remove_events(event_type):
     """Remove events of specified type from queue"""
     # The spacenavigator library doesn't queue events, so we just return 0
     return 0
 
-# Create a libspnav-like object for compatibility
-class LibSpnavCompat:
-    """Compatibility class that mimics libspnav CDLL interface"""
+class SpaceMouseAdapter:
+    """Adapter that provides interface for SpaceMouse devices"""
     def __init__(self):
-        self.spnav_open = spnav_open
-        self.spnav_close = spnav_close
-        self.spnav_poll_event = spnav_poll_event
-        self.spnav_remove_events = spnav_remove_events
+        self.open_device = open_device
+        self.close_device = close_device
+        self.poll_device_event = poll_device_event
+        self.remove_events = remove_events
 
-# Create the libspnav compatibility object
-libspnav = LibSpnavCompat()
+# Create the adapter instance
+adapter = SpaceMouseAdapter()
