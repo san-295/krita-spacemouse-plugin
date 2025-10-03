@@ -1,6 +1,8 @@
 # krita-spacemouse-plugin
 A simple plugin that allows for panning and zooming in krita via space mouse
 
+<img width="383" height="227" alt="Screenshot 2025-10-04 082634" src="https://github.com/user-attachments/assets/c49b41c5-5956-4628-9673-4f09093e7308" />
+
 # Setup instruction
 1. Copy the contents of this repository into the pykrita folder, which can be accessed via Settings -> Manage Resources -> Open Resource Folder
 2. Enable the plugin: Settings -> Configure Krita -> Python Plugin Manager -> Check SpaceMouse Plugin (Simplified)
