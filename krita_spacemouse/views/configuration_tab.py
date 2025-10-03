@@ -22,9 +22,9 @@ class ConfigurationTab(QWidget):
 
         # Zoom scale control (zoom percentage per unit movement)
         self.zoom_scale_slider = QSlider(Qt.Horizontal)
-        self.zoom_scale_slider.setMinimum(5)     # 0.5% zoom per unit
-        self.zoom_scale_slider.setMaximum(100)   # 10.0% zoom per unit
-        self.zoom_scale_slider.setValue(32)      # 3.2% default (0.032 factor)
+        self.zoom_scale_slider.setMinimum(25)    # 2.5% zoom per unit
+        self.zoom_scale_slider.setMaximum(200)   # 20.0% zoom per unit
+        self.zoom_scale_slider.setValue(100)     # 10.0% default
         self.zoom_scale_slider.valueChanged.connect(self.update_zoom_scale)
         self.zoom_scale_label = QLabel(f"Zoom Scale: {self.zoom_scale_slider.value() / 10.0:.1f}% per unit")
         self.layout.addWidget(self.zoom_scale_label)
@@ -34,7 +34,7 @@ class ConfigurationTab(QWidget):
         self.rotation_speed_slider = QSlider(Qt.Horizontal)
         self.rotation_speed_slider.setMinimum(5)     # 0.5 degrees per unit
         self.rotation_speed_slider.setMaximum(100)   # 10.0 degrees per unit
-        self.rotation_speed_slider.setValue(25)      # 2.0 degrees default
+        self.rotation_speed_slider.setValue(40)      # 4.0 degrees default
         self.rotation_speed_slider.valueChanged.connect(self.update_rotation_speed)
         self.rotation_speed_label = QLabel(f"Rotation Speed: {self.rotation_speed_slider.value() / 10.0:.1f} deg/unit")
         self.layout.addWidget(self.rotation_speed_label)
@@ -188,8 +188,8 @@ class ConfigurationTab(QWidget):
             
             # Load values with defaults if not found
             pan_scale = settings.value("pan_scale", 120, type=int)
-            zoom_scale = settings.value("zoom_scale", 32, type=int)
-            rotation_speed = settings.value("rotation_speed", 25, type=int)
+            zoom_scale = settings.value("zoom_scale", 100, type=int)
+            rotation_speed = settings.value("rotation_speed", 40, type=int)
             dead_zone = settings.value("dead_zone", 150, type=int)
             poll_rate = settings.value("poll_rate", 30, type=int)
             
