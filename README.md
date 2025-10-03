@@ -14,4 +14,5 @@ and
 pywinusb: https://github.com/rene-aguirre/pywinusb
 to be installed into the pykrita folder.
 
-Not sure if this is the right way to do things, I did this by: pip install <spacenavigator/pywinusb> --target <pykrita-director>
+Not sure if this is the right way to do things, I did this by running
+pip install <spacenavigator/pywinusb> --target <pykrita-director>
